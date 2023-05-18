@@ -1,0 +1,5 @@
+name: LoginLog
+version: '${project.version}'
+main: net.daechler.loginlog.LoginLog
+author: Daechler
+description: Log login attempts to a MySQL database.
