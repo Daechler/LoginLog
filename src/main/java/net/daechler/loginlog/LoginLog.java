@@ -1,12 +1,19 @@
 package net.daechler.loginlog;
 
+import java.sql.SQLException;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.UUID;
+
+import net.md_5.bungee.api.event.PostLoginEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
-import net.md_5.bungee.api.event.PostLoginEvent;
-import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
+import net.md_5.bungee.event.EventHandler;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,10 +22,6 @@ import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.UUID;
 
 public class LoginLog extends Plugin {
 
@@ -90,11 +93,22 @@ public class LoginLog extends Plugin {
     }
 
     private void connectToDatabase() {
-        try {
-            connection = DriverManager.getConnection(
-                    "jdbc:mysql://" + host + ":" + port + "/" + database, username, password);
-        } catch (SQLException e) {
-            getLogger().severe("Failed to connect to the database: " + e.getMessage());
+        while (true) {
+            try {
+                connection = DriverManager.getConnection(
+                        "jdbc:mysql://" + host + ":" + port + "/" + database, username, password);
+                break; // Connected successfully, exit the loop
+            } catch (SQLException e) {
+                getLogger().severe("Failed to connect to the database: " + e.getMessage());
+            }
+
+            try {
+                // Wait for 10 seconds before retrying
+                Thread.sleep(Duration.ofSeconds(10).toMillis());
+            } catch (InterruptedException e) {
+                getLogger().severe("Interrupted while trying to reconnect to the database: " + e.getMessage());
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
