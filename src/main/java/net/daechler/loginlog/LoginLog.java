@@ -133,12 +133,19 @@ public class LoginLog extends Plugin {
 
     private void logPlayerLogin(String dateTime, String playerName, String playerUUID, String playerIP) {
         String query = "INSERT INTO player_log (datetime, username, uuid, ip) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, dateTime);
-            statement.setString(2, playerName);
-            statement.setString(3, playerUUID);
-            statement.setString(4, playerIP);
-            statement.executeUpdate();
+        try {
+            // Check and re-establish the database connection if necessary
+            if (connection == null || connection.isClosed()) {
+                connectToDatabase();
+            }
+
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, dateTime);
+                statement.setString(2, playerName);
+                statement.setString(3, playerUUID);
+                statement.setString(4, playerIP);
+                statement.executeUpdate();
+            }
         } catch (SQLException e) {
             getLogger().severe("Failed to log player login: " + e.getMessage());
         }
